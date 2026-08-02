@@ -1,5 +1,8 @@
-let texto = "TIPO GENERATIVO";
 let interletrado = 15;
+let mic;
+let nivel = 0;
+let micActivo = false;
+let boton;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -7,6 +10,19 @@ function setup() {
   textStyle(BOLD);
   textSize(48);
   textAlign(CENTER, CENTER);
+
+  mic = new p5.AudioIn();
+
+  boton = createButton("Activar micrófono");
+  boton.position(20, 20);
+  boton.mousePressed(activarMicrofono);
+}
+
+function activarMicrofono() {
+  userStartAudio(); // necesario por políticas de autoplay del navegador
+  mic.start();
+  micActivo = true;
+  boton.hide();
 }
 
 function windowResized() {
@@ -16,6 +32,15 @@ function windowResized() {
 function draw() {
   background(20);
   fill(255);
+
+  if (micActivo) {
+    nivel = mic.getLevel(); // valor entre 0 (silencio) y ~1 (muy fuerte)
+  }
+
+  let h = nf(hour(), 2);
+  let m = nf(minute(), 2);
+  let s = nf(second(), 2);
+  let texto = h + " : " + m + " : " + s;
 
   let anchoTotal = 0;
   for (let i = 0; i < texto.length; i++) {
@@ -31,8 +56,8 @@ function draw() {
     let letraWidth = textWidth(letra);
     let letraX = x + letraWidth / 2;
 
-    let d = dist(mouseX, mouseY, letraX, y);
-    let desplazamiento = map(d, 0, 200, -60, 0, true);
+    // Cada letra reacciona al volumen, con una variación distinta por letra
+    let desplazamiento = sin(frameCount * 0.2 + i) * nivel * 400;
 
     push();
     translate(letraX, y + desplazamiento);
