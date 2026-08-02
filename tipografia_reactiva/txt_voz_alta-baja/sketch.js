@@ -1,7 +1,7 @@
 let mic;
-let texto = "PULSA ESCUCHAR";
+let texto = "Pulsa Escuchar";
 let tamano = 60;
-let sensibilidad = 8;
+let sensibilidad = 10;
 let escuchando = false;
 let reconocimiento;
 let botonEscuchar, botonParar;
@@ -21,7 +21,7 @@ function setup() {
   botonParar = createButton("Dejar de escuchar");
   botonParar.position(120, 20);
   botonParar.mousePressed(pararDeEscuchar);
-  botonParar.hide(); // solo visible mientras escucha
+  botonParar.hide();
 }
 
 function empezarAEscuchar() {
@@ -36,19 +36,18 @@ function empezarAEscuchar() {
   reconocimiento = new SpeechRecognition();
   reconocimiento.lang = "es-ES";
   reconocimiento.continuous = true;
-  reconocimiento.interimResults = false; // solo frases ya confirmadas, para fijar el tamaño una vez
+  reconocimiento.interimResults = false;
 
   reconocimiento.onresult = (evento) => {
     let resultado = evento.results[evento.results.length - 1];
-    texto = resultado[0].transcript.toUpperCase();
+    texto = resultado[0].transcript; // sin toUpperCase — respeta may/minúsculas naturales
 
-    // Fijamos el tamaño según el volumen justo en este momento
     let nivelAjustado = constrain(mic.getLevel() * sensibilidad, 0, 1);
-    tamano = map(nivelAjustado, 0, 1, 20, 500);
+    tamano = map(nivelAjustado, 0, 1, 20, 1200);
   };
 
   reconocimiento.onend = () => {
-    if (escuchando) reconocimiento.start(); // solo se reinicia si seguimos "escuchando" a propósito
+    if (escuchando) reconocimiento.start();
   };
 
   reconocimiento.start();
