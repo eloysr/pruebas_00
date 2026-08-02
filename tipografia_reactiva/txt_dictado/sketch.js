@@ -57,15 +57,35 @@ function draw() {
     nivel = mic.getLevel();
   }
 
+  // Calculamos un tamaño de letra que se ajuste al ancho de pantalla
+  let tamanoBase = 48;
+  textSize(tamanoBase);
   let interletradoActual = interletrado + nivel * 150;
 
-  let anchoTotal = 0;
+  let anchoTexto = 0;
   for (let i = 0; i < texto.length; i++) {
-    anchoTotal += textWidth(texto.charAt(i)) + interletradoActual;
+    anchoTexto += textWidth(texto.charAt(i)) + interletradoActual;
   }
-  anchoTotal -= interletradoActual;
+  anchoTexto -= interletradoActual;
 
-  let x = width / 2 - anchoTotal / 2;
+  // Si el texto es más ancho que la pantalla (con un margen), reducimos el tamaño
+  let margen = 80; // píxeles de aire a los lados
+  let anchoDisponible = width - margen * 2;
+
+  if (anchoTexto > anchoDisponible) {
+    let factor = anchoDisponible / anchoTexto;
+    tamanoBase = tamanoBase * factor;
+    textSize(tamanoBase);
+
+    // Recalculamos el ancho con el nuevo tamaño de letra
+    anchoTexto = 0;
+    for (let i = 0; i < texto.length; i++) {
+      anchoTexto += textWidth(texto.charAt(i)) + interletradoActual;
+    }
+    anchoTexto -= interletradoActual;
+  }
+
+  let x = width / 2 - anchoTexto / 2;
   let y = height / 2;
 
   for (let i = 0; i < texto.length; i++) {
