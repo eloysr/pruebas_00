@@ -55,27 +55,21 @@ function draw() {
     nivel = mic.getLevel();
   }
 
-  // El volumen decide el tamaño: bajito = pequeño, alto = grande
-  let tamanoMin = 20;
-  let tamanoMax = 300;
-  let tamano = map(nivel, 0, 0.5, tamanoMin, tamanoMax, true);
+  let nivelAmplificado = constrain(nivel * 3, 0, 1);
 
+  let tamano = map(nivelAmplificado, 0, 1, 20, 400);
   textSize(tamano);
 
-  // Calculamos el ancho del texto con ese tamaño
+  // Ajuste para que quepa en pantalla
   let anchoTexto = 0;
   for (let i = 0; i < texto.length; i++) {
     anchoTexto += textWidth(texto.charAt(i)) + interletrado;
   }
   anchoTexto -= interletrado;
 
-  // Límite de seguridad: si aun así no cabe en pantalla, lo reducimos más
-  let margen = 60;
-  let anchoDisponible = width - margen * 2;
-
+  let anchoDisponible = width - 120;
   if (anchoTexto > anchoDisponible) {
-    let factor = anchoDisponible / anchoTexto;
-    tamano = tamano * factor;
+    tamano = tamano * (anchoDisponible / anchoTexto);
     textSize(tamano);
 
     anchoTexto = 0;
@@ -85,19 +79,14 @@ function draw() {
     anchoTexto -= interletrado;
   }
 
+  // Todo queda fijo en el centro, sin animación
   let x = width / 2 - anchoTexto / 2;
   let y = height / 2;
 
   for (let i = 0; i < texto.length; i++) {
     let letra = texto.charAt(i);
     let letraWidth = textWidth(letra);
-    let letraX = x + letraWidth / 2;
-
-    push();
-    translate(letraX, y);
-    text(letra, 0, 0);
-    pop();
-
+    text(letra, x + letraWidth / 2, y);
     x += letraWidth + interletrado;
   }
 }
