@@ -1,15 +1,23 @@
+// --- Cambia este número cada vez que edites el archivo ---
+let VERSION = "v1.0";
+// ---------------------------------------------------------
+
 let mic;
 let palabras = [];
 let escuchando = false;
 let reconocimiento;
 let botonEscuchar, botonParar, botonLimpiar;
+let etiquetaVersion;
 let nivelPico = 0;
 
-// --- Parámetros de calibración: ajusta estos según lo que veas en la consola ---
-let volumenMaximo = 0.06;  // volumen que consideramos "grito" (bájalo si no llegas al máximo)
-let tamanoMinimo = 15;     // tamaño para susurros
-let tamanoMaximo = 500;    // tamaño para gritos
-// -----------------------------------------------------------------------------
+// --- Parámetros de calibración ---
+let volumenMaximo = 0.06;
+let tamanoMinimo = 15;
+let tamanoMaximo = 500;
+// ---------------------------------
+
+let margen = 40;
+let espacioEntrePalabras = 20;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -20,17 +28,35 @@ function setup() {
   mic = new p5.AudioIn();
 
   botonEscuchar = createButton("Escuchar");
-  botonEscuchar.position(20, 20);
   botonEscuchar.mousePressed(empezarAEscuchar);
+  fijarEnPantalla(botonEscuchar, 20);
 
   botonParar = createButton("Dejar de escuchar");
-  botonParar.position(120, 20);
   botonParar.mousePressed(pararDeEscuchar);
+  fijarEnPantalla(botonParar, 120);
   botonParar.hide();
 
   botonLimpiar = createButton("Limpiar");
-  botonLimpiar.position(260, 20);
   botonLimpiar.mousePressed(() => palabras = []);
+  fijarEnPantalla(botonLimpiar, 260);
+
+  // Indicador de versión, siempre visible abajo a la derecha
+  etiquetaVersion = createDiv(VERSION + " · " + new Date().toLocaleTimeString());
+  etiquetaVersion.style("position", "fixed");
+  etiquetaVersion.style("bottom", "10px");
+  etiquetaVersion.style("right", "12px");
+  etiquetaVersion.style("color", "#666");
+  etiquetaVersion.style("font-family", "monospace");
+  etiquetaVersion.style("font-size", "12px");
+  etiquetaVersion.style("z-index", "100");
+}
+
+// Hace que un botón quede fijo en pantalla aunque hagas scroll
+function fijarEnPantalla(elemento, izquierda) {
+  elemento.style("position", "fixed");
+  elemento.style("top", "20px");
+  elemento.style("left", izquierda + "px");
+  elemento.style("z-index", "100");
 }
 
 function empezarAEscuchar() {
@@ -56,8 +82,7 @@ function empezarAEscuchar() {
 
     console.log("pico:", nivelPico.toFixed(4), "→ tamaño:", tamano.toFixed(0));
 
-    let nuevasPalabras = frase.split(" ");
-    for (let p of nuevasPalabras) {
+    for (let p of frase.split(" ")) {
       if (p.length > 0) {
         palabras.push({ texto: p, tamano: tamano });
       }
@@ -83,7 +108,33 @@ function pararDeEscuchar() {
 }
 
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(windowWidth, height);
+}
+
+// Calcula la posición de cada palabra y la altura total necesaria
+function calcularDisposicion() {
+  let posiciones = [];
+  let x = margen;
+  let y = margen;
+  let alturaLinea = 0;
+
+  for (let palabra of palabras) {
+    textSize(palabra.tamano);
+    let ancho = textWidth(palabra.texto);
+
+    if (x + ancho > width - margen && x > margen) {
+      x = margen;
+      y += alturaLinea;
+      alturaLinea = 0;
+    }
+
+    posiciones.push({ palabra: palabra, x: x, y: y });
+
+    x += ancho + espacioEntrePalabras;
+    alturaLinea = max(alturaLinea, palabra.tamano * 1.2);
+  }
+
+  return { posiciones: posiciones, alturaTotal: y + alturaLinea + margen };
 }
 
 function draw() {
@@ -94,25 +145,17 @@ function draw() {
     nivelPico = max(nivelPico, mic.getLevel());
   }
 
-  let margen = 40;
-  let x = margen;
-  let y = margen;
-  let alturaLinea = 0;
-  let espacioEntrePalabras = 20;
+  let disposicion = calcularDisposicion();
 
-  for (let palabra of palabras) {
-    textSize(palabra.tamano);
-    let ancho = textWidth(palabra.texto);
+  // Si el texto no cabe, el canvas crece y aparece scroll en la página
+  let alturaNecesaria = max(windowHeight, disposicion.alturaTotal);
+  if (abs(alturaNecesaria - height) > 1) {
+    resizeCanvas(width, alturaNecesaria);
+    return; // saltamos este fotograma; el siguiente ya dibuja con el tamaño correcto
+  }
 
-    if (x + ancho > width - margen) {
-      x = margen;
-      y += alturaLinea;
-      alturaLinea = 0;
-    }
-
-    text(palabra.texto, x, y);
-
-    x += ancho + espacioEntrePalabras;
-    alturaLinea = max(alturaLinea, palabra.tamano * 1.2);
+  for (let item of disposicion.posiciones) {
+    textSize(item.palabra.tamano);
+    text(item.palabra.texto, item.x, item.y);
   }
 }
