@@ -8,7 +8,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont("Helvetica");
   textStyle(BOLD);
-  textSize(12);
+  textSize(14);
   textAlign(CENTER, CENTER);
 
   mic = new p5.AudioIn();
