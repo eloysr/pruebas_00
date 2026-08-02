@@ -1,21 +1,19 @@
-let VERSION = "v1.1";
+let VERSION = "v1.2";
 
 let mic;
 let palabras = [];
 let escuchando = false;
 let reconocimiento;
 let botonEscuchar, botonParar, botonLimpiar;
-let etiquetaVersion;
 let nivelPico = 0;
 
-let volumenMaximo = 0.02;
-let tamanoMinimo = 6;
+let volumenMaximo = 0.06;
+let tamanoMinimo = 15;
 let tamanoMaximo = 500;
 
 let margen = 40;
 let espacioEntrePalabras = 20;
 
-// Cache de la disposición: solo se recalcula cuando hace falta
 let disposicion = { posiciones: [], alturaTotal: 0 };
 let necesitaRecalcular = true;
 
@@ -24,7 +22,6 @@ function setup() {
   textFont("Helvetica");
   textStyle(BOLD);
   textAlign(LEFT, TOP);
-  noLoop(); // no dibujamos en bucle continuo; solo cuando hay cambios
 
   mic = new p5.AudioIn();
 
@@ -38,23 +35,17 @@ function setup() {
   botonParar.hide();
 
   botonLimpiar = createButton("Limpiar");
-  botonLimpiar.mousePressed(() => {
-    palabras = [];
-    necesitaRecalcular = true;
-    redraw();
-  });
+  botonLimpiar.mousePressed(limpiar);
   fijarEnPantalla(botonLimpiar, 260);
 
-  etiquetaVersion = createDiv(VERSION + " · " + new Date().toLocaleTimeString());
-  etiquetaVersion.style("position", "fixed");
-  etiquetaVersion.style("bottom", "10px");
-  etiquetaVersion.style("right", "12px");
-  etiquetaVersion.style("color", "#666");
-  etiquetaVersion.style("font-family", "monospace");
-  etiquetaVersion.style("font-size", "12px");
-  etiquetaVersion.style("z-index", "100");
-
-  redraw();
+  let etiqueta = createDiv(VERSION + " · " + new Date().toLocaleTimeString());
+  etiqueta.style("position", "fixed");
+  etiqueta.style("bottom", "10px");
+  etiqueta.style("right", "12px");
+  etiqueta.style("color", "#888");
+  etiqueta.style("font-family", "monospace");
+  etiqueta.style("font-size", "12px");
+  etiqueta.style("z-index", "100");
 }
 
 function fijarEnPantalla(elemento, izquierda) {
@@ -62,6 +53,11 @@ function fijarEnPantalla(elemento, izquierda) {
   elemento.style("top", "20px");
   elemento.style("left", izquierda + "px");
   elemento.style("z-index", "100");
+}
+
+function limpiar() {
+  palabras = [];
+  necesitaRecalcular = true;
 }
 
 function empezarAEscuchar() {
@@ -72,18 +68,13 @@ function empezarAEscuchar() {
   botonEscuchar.hide();
   botonParar.show();
 
-  // Medimos el volumen aparte del bucle de dibujo, 20 veces por segundo
-  setInterval(() => {
-    if (escuchando) nivelPico = max(nivelPico, mic.getLevel());
-  }, 50);
-
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   reconocimiento = new SpeechRecognition();
   reconocimiento.lang = "es-ES";
   reconocimiento.continuous = true;
   reconocimiento.interimResults = false;
 
-  reconocimiento.onresult = (evento) => {
+  reconocimiento.onresult = function (evento) {
     let resultado = evento.results[evento.results.length - 1];
     let frase = resultado[0].transcript.trim();
 
@@ -92,18 +83,18 @@ function empezarAEscuchar() {
 
     console.log("pico:", nivelPico.toFixed(4), "→ tamaño:", tamano.toFixed(0));
 
-    for (let p of frase.split(" ")) {
-      if (p.length > 0) {
-        palabras.push({ texto: p, tamano: tamano });
+    let trozos = frase.split(" ");
+    for (let i = 0; i < trozos.length; i++) {
+      if (trozos[i].length > 0) {
+        palabras.push({ texto: trozos[i], tamano: tamano });
       }
     }
 
     nivelPico = 0;
     necesitaRecalcular = true;
-    redraw(); // dibujamos una sola vez, ahora que hay contenido nuevo
   };
 
-  reconocimiento.onend = () => {
+  reconocimiento.onend = function () {
     if (escuchando) reconocimiento.start();
   };
 
@@ -122,7 +113,6 @@ function pararDeEscuchar() {
 function windowResized() {
   resizeCanvas(windowWidth, height);
   necesitaRecalcular = true;
-  redraw();
 }
 
 function calcularDisposicion() {
@@ -131,10 +121,49 @@ function calcularDisposicion() {
   let y = margen;
   let alturaLinea = 0;
 
-  for (let palabra of palabras) {
+  for (let i = 0; i < palabras.length; i++) {
+    let palabra = palabras[i];
     textSize(palabra.tamano);
     let ancho = textWidth(palabra.texto);
 
     if (x + ancho > width - margen && x > margen) {
       x = margen;
-      y +=
+      y += alturaLinea;
+      alturaLinea = 0;
+    }
+
+    posiciones.push({ palabra: palabra, x: x, y: y });
+
+    x += ancho + espacioEntrePalabras;
+    alturaLinea = max(alturaLinea, palabra.tamano * 1.2);
+  }
+
+  return { posiciones: posiciones, alturaTotal: y + alturaLinea + margen };
+}
+
+function draw() {
+  if (escuchando) {
+    nivelPico = max(nivelPico, mic.getLevel());
+  }
+
+  if (necesitaRecalcular) {
+    disposicion = calcularDisposicion();
+    necesitaRecalcular = false;
+
+    let alturaNecesaria = max(windowHeight, disposicion.alturaTotal);
+    if (abs(alturaNecesaria - height) > 1) {
+      resizeCanvas(width, alturaNecesaria);
+      necesitaRecalcular = true;
+      return;
+    }
+  }
+
+  background(20);
+  fill(255);
+
+  for (let i = 0; i < disposicion.posiciones.length; i++) {
+    let item = disposicion.posiciones[i];
+    textSize(item.palabra.tamano);
+    text(item.palabra.texto, item.x, item.y);
+  }
+}
