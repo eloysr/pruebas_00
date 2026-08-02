@@ -3,7 +3,13 @@ let palabras = [];
 let escuchando = false;
 let reconocimiento;
 let botonEscuchar, botonParar, botonLimpiar;
-let nivelPico = 0; // guarda el volumen más alto detectado desde la última palabra
+let nivelPico = 0;
+
+// --- Parámetros de calibración: ajusta estos según lo que veas en la consola ---
+let volumenMaximo = 0.06;  // volumen que consideramos "grito" (bájalo si no llegas al máximo)
+let tamanoMinimo = 15;     // tamaño para susurros
+let tamanoMaximo = 500;    // tamaño para gritos
+// -----------------------------------------------------------------------------
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -45,11 +51,10 @@ function empezarAEscuchar() {
     let resultado = evento.results[evento.results.length - 1];
     let frase = resultado[0].transcript.trim();
 
-    // Usamos el PICO de volumen registrado mientras hablabas, no el nivel actual
-    let nivelAjustado = constrain(nivelPico / 0.15, 0, 1);
-    let tamano = lerp(30, 300, nivelAjustado);
+    let nivelAjustado = constrain(nivelPico / volumenMaximo, 0, 1);
+    let tamano = lerp(tamanoMinimo, tamanoMaximo, nivelAjustado);
 
-    console.log("pico:", nivelPico, "→ tamaño:", tamano);
+    console.log("pico:", nivelPico.toFixed(4), "→ tamaño:", tamano.toFixed(0));
 
     let nuevasPalabras = frase.split(" ");
     for (let p of nuevasPalabras) {
@@ -58,7 +63,7 @@ function empezarAEscuchar() {
       }
     }
 
-    nivelPico = 0; // reiniciamos para la siguiente frase
+    nivelPico = 0;
   };
 
   reconocimiento.onend = () => {
@@ -85,10 +90,8 @@ function draw() {
   background(20);
   fill(255);
 
-  // Medimos el volumen en cada fotograma y guardamos el máximo
   if (escuchando) {
-    let nivelActual = mic.getLevel();
-    nivelPico = max(nivelPico, nivelActual);
+    nivelPico = max(nivelPico, mic.getLevel());
   }
 
   let margen = 40;
