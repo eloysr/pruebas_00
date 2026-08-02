@@ -1,6 +1,4 @@
-// --- Cambia este número cada vez que edites el archivo ---
-let VERSION = "v1.0";
-// ---------------------------------------------------------
+let VERSION = "v1.1";
 
 let mic;
 let palabras = [];
@@ -10,20 +8,23 @@ let botonEscuchar, botonParar, botonLimpiar;
 let etiquetaVersion;
 let nivelPico = 0;
 
-// --- Parámetros de calibración ---
-let volumenMaximo = 0.06;
-let tamanoMinimo = 15;
+let volumenMaximo = 0.02;
+let tamanoMinimo = 6;
 let tamanoMaximo = 500;
-// ---------------------------------
 
 let margen = 40;
 let espacioEntrePalabras = 20;
+
+// Cache de la disposición: solo se recalcula cuando hace falta
+let disposicion = { posiciones: [], alturaTotal: 0 };
+let necesitaRecalcular = true;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont("Helvetica");
   textStyle(BOLD);
   textAlign(LEFT, TOP);
+  noLoop(); // no dibujamos en bucle continuo; solo cuando hay cambios
 
   mic = new p5.AudioIn();
 
@@ -37,10 +38,13 @@ function setup() {
   botonParar.hide();
 
   botonLimpiar = createButton("Limpiar");
-  botonLimpiar.mousePressed(() => palabras = []);
+  botonLimpiar.mousePressed(() => {
+    palabras = [];
+    necesitaRecalcular = true;
+    redraw();
+  });
   fijarEnPantalla(botonLimpiar, 260);
 
-  // Indicador de versión, siempre visible abajo a la derecha
   etiquetaVersion = createDiv(VERSION + " · " + new Date().toLocaleTimeString());
   etiquetaVersion.style("position", "fixed");
   etiquetaVersion.style("bottom", "10px");
@@ -49,9 +53,10 @@ function setup() {
   etiquetaVersion.style("font-family", "monospace");
   etiquetaVersion.style("font-size", "12px");
   etiquetaVersion.style("z-index", "100");
+
+  redraw();
 }
 
-// Hace que un botón quede fijo en pantalla aunque hagas scroll
 function fijarEnPantalla(elemento, izquierda) {
   elemento.style("position", "fixed");
   elemento.style("top", "20px");
@@ -66,6 +71,11 @@ function empezarAEscuchar() {
 
   botonEscuchar.hide();
   botonParar.show();
+
+  // Medimos el volumen aparte del bucle de dibujo, 20 veces por segundo
+  setInterval(() => {
+    if (escuchando) nivelPico = max(nivelPico, mic.getLevel());
+  }, 50);
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   reconocimiento = new SpeechRecognition();
@@ -89,6 +99,8 @@ function empezarAEscuchar() {
     }
 
     nivelPico = 0;
+    necesitaRecalcular = true;
+    redraw(); // dibujamos una sola vez, ahora que hay contenido nuevo
   };
 
   reconocimiento.onend = () => {
@@ -109,9 +121,10 @@ function pararDeEscuchar() {
 
 function windowResized() {
   resizeCanvas(windowWidth, height);
+  necesitaRecalcular = true;
+  redraw();
 }
 
-// Calcula la posición de cada palabra y la altura total necesaria
 function calcularDisposicion() {
   let posiciones = [];
   let x = margen;
@@ -124,38 +137,4 @@ function calcularDisposicion() {
 
     if (x + ancho > width - margen && x > margen) {
       x = margen;
-      y += alturaLinea;
-      alturaLinea = 0;
-    }
-
-    posiciones.push({ palabra: palabra, x: x, y: y });
-
-    x += ancho + espacioEntrePalabras;
-    alturaLinea = max(alturaLinea, palabra.tamano * 1.2);
-  }
-
-  return { posiciones: posiciones, alturaTotal: y + alturaLinea + margen };
-}
-
-function draw() {
-  background(20);
-  fill(255);
-
-  if (escuchando) {
-    nivelPico = max(nivelPico, mic.getLevel());
-  }
-
-  let disposicion = calcularDisposicion();
-
-  // Si el texto no cabe, el canvas crece y aparece scroll en la página
-  let alturaNecesaria = max(windowHeight, disposicion.alturaTotal);
-  if (abs(alturaNecesaria - height) > 1) {
-    resizeCanvas(width, alturaNecesaria);
-    return; // saltamos este fotograma; el siguiente ya dibuja con el tamaño correcto
-  }
-
-  for (let item of disposicion.posiciones) {
-    textSize(item.palabra.tamano);
-    text(item.palabra.texto, item.x, item.y);
-  }
-}
+      y +=
