@@ -1,5 +1,5 @@
 PFont fuente;
-String texto = "TIPOGRAFIA GENERATIVA";
+String texto = "TIPO GENERATIVO";
 float tiempo = 0;
 
 void setup() {
