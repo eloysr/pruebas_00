@@ -31,7 +31,7 @@ function activarMicrofono() {
   reconocimiento = new SpeechRecognition();
   reconocimiento.lang = "es-ES";
   reconocimiento.continuous = true;      // sigue escuchando sin parar
-  reconocimiento.interimResults = false; // solo frases ya confirmadas, no a medio decir
+  reconocimiento.interimResults = true; // solo frases ya confirmadas, no a medio decir
 
   reconocimiento.onresult = (evento) => {
     let ultimoResultado = evento.results[evento.results.length - 1];
