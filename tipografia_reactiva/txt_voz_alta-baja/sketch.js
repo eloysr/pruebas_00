@@ -1,8 +1,10 @@
 let mic;
-let nivel = 0;
-let texto = "DI ALGO";
-let boton;
-let sensibilidad = 8; // sube este número si necesitas más rango, baja si se satura muy rápido
+let texto = "PULSA ESCUCHAR";
+let tamano = 60;
+let sensibilidad = 8;
+let escuchando = false;
+let reconocimiento;
+let botonEscuchar, botonParar;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -12,29 +14,53 @@ function setup() {
 
   mic = new p5.AudioIn();
 
-  boton = createButton("Activar micrófono");
-  boton.position(20, 20);
-  boton.mousePressed(activar);
+  botonEscuchar = createButton("Escuchar");
+  botonEscuchar.position(20, 20);
+  botonEscuchar.mousePressed(empezarAEscuchar);
+
+  botonParar = createButton("Dejar de escuchar");
+  botonParar.position(120, 20);
+  botonParar.mousePressed(pararDeEscuchar);
+  botonParar.hide(); // solo visible mientras escucha
 }
 
-function activar() {
+function empezarAEscuchar() {
   userStartAudio();
   mic.start();
-  boton.hide();
+  escuchando = true;
+
+  botonEscuchar.hide();
+  botonParar.show();
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let reconocimiento = new SpeechRecognition();
+  reconocimiento = new SpeechRecognition();
   reconocimiento.lang = "es-ES";
   reconocimiento.continuous = true;
-  reconocimiento.interimResults = true;
+  reconocimiento.interimResults = false; // solo frases ya confirmadas, para fijar el tamaño una vez
 
   reconocimiento.onresult = (evento) => {
     let resultado = evento.results[evento.results.length - 1];
     texto = resultado[0].transcript.toUpperCase();
+
+    // Fijamos el tamaño según el volumen justo en este momento
+    let nivelAjustado = constrain(mic.getLevel() * sensibilidad, 0, 1);
+    tamano = map(nivelAjustado, 0, 1, 20, 500);
   };
 
-  reconocimiento.onend = () => reconocimiento.start();
+  reconocimiento.onend = () => {
+    if (escuchando) reconocimiento.start(); // solo se reinicia si seguimos "escuchando" a propósito
+  };
+
   reconocimiento.start();
+}
+
+function pararDeEscuchar() {
+  escuchando = false;
+  mic.stop();
+  if (reconocimiento) reconocimiento.stop();
+
+  botonParar.hide();
+  botonEscuchar.show();
 }
 
 function windowResized() {
@@ -44,12 +70,6 @@ function windowResized() {
 function draw() {
   background(20);
   fill(255);
-
-  nivel = mic.getLevel();
-
-  // Volumen (0 a ~1) → tamaño de letra (20px a 500px)
-  let nivelAjustado = constrain(nivel * sensibilidad, 0, 1);
-  let tamano = map(nivelAjustado, 0, 1, 20, 500);
 
   textSize(tamano);
   text(texto, width / 2, height / 2);
