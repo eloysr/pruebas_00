@@ -1,12 +1,16 @@
 let texto = "TIPO GENERATIVO";
-let interletrado = 0;
+let interletrado = 15;
 
 function setup() {
-  createCanvas(1000, 800);
+  createCanvas(windowWidth, windowHeight);
   textFont("Helvetica");
   textStyle(BOLD);
   textSize(48);
   textAlign(CENTER, CENTER);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
 
 function draw() {
@@ -28,7 +32,7 @@ function draw() {
     let letraX = x + letraWidth / 2;
 
     let d = dist(mouseX, mouseY, letraX, y);
-    let desplazamiento = map(d, 0, 20, -60, 0, true);
+    let desplazamiento = map(d, 0, 200, -60, 0, true);
 
     push();
     translate(letraX, y + desplazamiento);
