@@ -1,4 +1,5 @@
 let texto = "TIPO GENERATIVO";
+let interletrado = 0;
 
 function setup() {
   createCanvas(1000, 800);
@@ -12,7 +13,13 @@ function draw() {
   background(20);
   fill(255);
 
-  let x = width / 2 - textWidth(texto) / 2;
+  let anchoTotal = 0;
+  for (let i = 0; i < texto.length; i++) {
+    anchoTotal += textWidth(texto.charAt(i)) + interletrado;
+  }
+  anchoTotal -= interletrado;
+
+  let x = width / 2 - anchoTotal / 2;
   let y = height / 2;
 
   for (let i = 0; i < texto.length; i++) {
@@ -20,21 +27,14 @@ function draw() {
     let letraWidth = textWidth(letra);
     let letraX = x + letraWidth / 2;
 
-    // Distancia entre el mouse y esta letra
     let d = dist(mouseX, mouseY, letraX, y);
-
-    // Cuanto más cerca el mouse, más se desplaza hacia arriba
-    let desplazamiento = map(d, 0, 200, -60, 0, true);
-
-    // Cuanto más cerca el mouse, más grande se ve la letra
-    let escala = map(d, 0, 200, 1.8, 1, true);
+    let desplazamiento = map(d, 0, 20, -60, 0, true);
 
     push();
     translate(letraX, y + desplazamiento);
-    scale(escala);
     text(letra, 0, 0);
     pop();
 
-    x += letraWidth;
+    x += letraWidth + interletrado;
   }
 }
