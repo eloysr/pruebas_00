@@ -10,7 +10,6 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont("Helvetica");
   textStyle(BOLD);
-  textSize(48);
   textAlign(CENTER, CENTER);
 
   mic = new p5.AudioIn();
@@ -26,20 +25,19 @@ function activarMicrofono() {
   micActivo = true;
   boton.hide();
 
-  // Configuración del reconocimiento de voz
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   reconocimiento = new SpeechRecognition();
   reconocimiento.lang = "es-ES";
-  reconocimiento.continuous = true;      // sigue escuchando sin parar
-  reconocimiento.interimResults = true; // solo frases ya confirmadas, no a medio decir
+  reconocimiento.continuous = true;
+  reconocimiento.interimResults = true;
 
   reconocimiento.onresult = (evento) => {
-    let ultimoResultado = evento.results[evento.results.length - 1];
-    texto = ultimoResultado[0].transcript.toUpperCase();
+    let resultado = evento.results[evento.results.length - 1];
+    texto = resultado[0].transcript.toUpperCase();
   };
 
   reconocimiento.onend = () => {
-    reconocimiento.start(); // se reinicia solo si el navegador lo corta
+    reconocimiento.start();
   };
 
   reconocimiento.start();
@@ -57,32 +55,34 @@ function draw() {
     nivel = mic.getLevel();
   }
 
-  // Calculamos un tamaño de letra que se ajuste al ancho de pantalla
-  let tamanoBase = 48;
-  textSize(tamanoBase);
-  let interletradoActual = interletrado + nivel * 150;
+  // El volumen decide el tamaño: bajito = pequeño, alto = grande
+  let tamanoMin = 20;
+  let tamanoMax = 300;
+  let tamano = map(nivel, 0, 0.5, tamanoMin, tamanoMax, true);
 
+  textSize(tamano);
+
+  // Calculamos el ancho del texto con ese tamaño
   let anchoTexto = 0;
   for (let i = 0; i < texto.length; i++) {
-    anchoTexto += textWidth(texto.charAt(i)) + interletradoActual;
+    anchoTexto += textWidth(texto.charAt(i)) + interletrado;
   }
-  anchoTexto -= interletradoActual;
+  anchoTexto -= interletrado;
 
-  // Si el texto es más ancho que la pantalla (con un margen), reducimos el tamaño
-  let margen = 80; // píxeles de aire a los lados
+  // Límite de seguridad: si aun así no cabe en pantalla, lo reducimos más
+  let margen = 60;
   let anchoDisponible = width - margen * 2;
 
   if (anchoTexto > anchoDisponible) {
     let factor = anchoDisponible / anchoTexto;
-    tamanoBase = tamanoBase * factor;
-    textSize(tamanoBase);
+    tamano = tamano * factor;
+    textSize(tamano);
 
-    // Recalculamos el ancho con el nuevo tamaño de letra
     anchoTexto = 0;
     for (let i = 0; i < texto.length; i++) {
-      anchoTexto += textWidth(texto.charAt(i)) + interletradoActual;
+      anchoTexto += textWidth(texto.charAt(i)) + interletrado;
     }
-    anchoTexto -= interletradoActual;
+    anchoTexto -= interletrado;
   }
 
   let x = width / 2 - anchoTexto / 2;
@@ -93,15 +93,11 @@ function draw() {
     let letraWidth = textWidth(letra);
     let letraX = x + letraWidth / 2;
 
-    let desplazamiento = sin(frameCount * 0.2 + i) * nivel * 400;
-    let escala = 1 + nivel * 5;
-
     push();
-    translate(letraX, y + desplazamiento);
-    scale(escala);
+    translate(letraX, y);
     text(letra, 0, 0);
     pop();
 
-    x += letraWidth + interletradoActual;
+    x += letraWidth + interletrado;
   }
 }
