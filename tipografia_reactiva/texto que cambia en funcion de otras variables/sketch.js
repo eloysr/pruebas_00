@@ -23,8 +23,8 @@ function setup() {
 }
 
 function cargarFrase() {
-  loadJSON("https://api.quotable.io/random", (datos) => {
-    texto = datos.content.toUpperCase();
+  loadJSON("https://es.wikipedia.org/api/rest_v1/page/random/summary", (datos) => {
+    texto = datos.title.toUpperCase();
   });
 }
 
