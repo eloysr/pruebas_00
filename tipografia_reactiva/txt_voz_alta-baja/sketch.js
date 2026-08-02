@@ -1,14 +1,15 @@
 let mic;
-let palabras = []; // cada elemento: { texto: "hola", tamano: 80 }
+let palabras = [];
 let escuchando = false;
 let reconocimiento;
 let botonEscuchar, botonParar, botonLimpiar;
+let nivelPico = 0; // guarda el volumen más alto detectado desde la última palabra
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont("Helvetica");
   textStyle(BOLD);
-  textAlign(LEFT, TOP); // alineación por esquina, más fácil para maquetar líneas
+  textAlign(LEFT, TOP);
 
   mic = new p5.AudioIn();
 
@@ -44,17 +45,20 @@ function empezarAEscuchar() {
     let resultado = evento.results[evento.results.length - 1];
     let frase = resultado[0].transcript.trim();
 
-    let nivel = mic.getLevel();
-    let nivelAjustado = constrain(nivel / 0.15, 0, 1);
+    // Usamos el PICO de volumen registrado mientras hablabas, no el nivel actual
+    let nivelAjustado = constrain(nivelPico / 0.15, 0, 1);
     let tamano = lerp(30, 300, nivelAjustado);
 
-    // Separamos la frase en palabras sueltas, cada una con el mismo tamaño
+    console.log("pico:", nivelPico, "→ tamaño:", tamano);
+
     let nuevasPalabras = frase.split(" ");
     for (let p of nuevasPalabras) {
       if (p.length > 0) {
         palabras.push({ texto: p, tamano: tamano });
       }
     }
+
+    nivelPico = 0; // reiniciamos para la siguiente frase
   };
 
   reconocimiento.onend = () => {
@@ -81,17 +85,22 @@ function draw() {
   background(20);
   fill(255);
 
+  // Medimos el volumen en cada fotograma y guardamos el máximo
+  if (escuchando) {
+    let nivelActual = mic.getLevel();
+    nivelPico = max(nivelPico, nivelActual);
+  }
+
   let margen = 40;
   let x = margen;
   let y = margen;
-  let alturaLinea = 0; // altura de la palabra más grande de la línea actual
+  let alturaLinea = 0;
   let espacioEntrePalabras = 20;
 
   for (let palabra of palabras) {
     textSize(palabra.tamano);
     let ancho = textWidth(palabra.texto);
 
-    // Si no cabe en esta línea, saltamos a la siguiente
     if (x + ancho > width - margen) {
       x = margen;
       y += alturaLinea;
@@ -101,6 +110,6 @@ function draw() {
     text(palabra.texto, x, y);
 
     x += ancho + espacioEntrePalabras;
-    alturaLinea = max(alturaLinea, palabra.tamano * 1.2); // 1.2 = interlineado
+    alturaLinea = max(alturaLinea, palabra.tamano * 1.2);
   }
 }
