@@ -1,15 +1,14 @@
 let mic;
-let texto = "Pulsa Escuchar";
-let tamano = 60;
+let palabras = []; // cada elemento: { texto: "hola", tamano: 80 }
 let escuchando = false;
 let reconocimiento;
-let botonEscuchar, botonParar;
+let botonEscuchar, botonParar, botonLimpiar;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont("Helvetica");
   textStyle(BOLD);
-  textAlign(CENTER, CENTER);
+  textAlign(LEFT, TOP); // alineación por esquina, más fácil para maquetar líneas
 
   mic = new p5.AudioIn();
 
@@ -21,6 +20,10 @@ function setup() {
   botonParar.position(120, 20);
   botonParar.mousePressed(pararDeEscuchar);
   botonParar.hide();
+
+  botonLimpiar = createButton("Limpiar");
+  botonLimpiar.position(260, 20);
+  botonLimpiar.mousePressed(() => palabras = []);
 }
 
 function empezarAEscuchar() {
@@ -39,18 +42,19 @@ function empezarAEscuchar() {
 
   reconocimiento.onresult = (evento) => {
     let resultado = evento.results[evento.results.length - 1];
-    texto = resultado[0].transcript;
+    let frase = resultado[0].transcript.trim();
 
     let nivel = mic.getLevel();
-    console.log("nivel:", nivel); // para calibrar; lo quitamos después
-
-    // Tamaño mínimo fijo, tamaño máximo = el que ocupa TODO el ancho de pantalla
-    let tamanoMinimo = 30;
-    let tamanoMaximo = calcularTamanoParaAnchoCompleto(texto);
-
-    // 0.15 es un volumen "alto" típico hablando fuerte; ajustamos abajo si hace falta
     let nivelAjustado = constrain(nivel / 0.15, 0, 1);
-    tamano = lerp(tamanoMinimo, tamanoMaximo, nivelAjustado);
+    let tamano = lerp(30, 300, nivelAjustado);
+
+    // Separamos la frase en palabras sueltas, cada una con el mismo tamaño
+    let nuevasPalabras = frase.split(" ");
+    for (let p of nuevasPalabras) {
+      if (p.length > 0) {
+        palabras.push({ texto: p, tamano: tamano });
+      }
+    }
   };
 
   reconocimiento.onend = () => {
@@ -58,19 +62,6 @@ function empezarAEscuchar() {
   };
 
   reconocimiento.start();
-}
-
-// Calcula qué tamaño de letra hace que el texto ocupe el ancho de la pantalla (con margen)
-function calcularTamanoParaAnchoCompleto(cadena) {
-  let margen = 40;
-  let anchoDisponible = width - margen * 2;
-
-  textSize(100); // tamaño de referencia para medir proporciones
-  let anchoDeReferencia = textWidth(cadena);
-
-  if (anchoDeReferencia === 0) return 100; // evita división por cero si el texto está vacío
-
-  return (anchoDisponible / anchoDeReferencia) * 100;
 }
 
 function pararDeEscuchar() {
@@ -90,6 +81,26 @@ function draw() {
   background(20);
   fill(255);
 
-  textSize(tamano);
-  text(texto, width / 2, height / 2);
+  let margen = 40;
+  let x = margen;
+  let y = margen;
+  let alturaLinea = 0; // altura de la palabra más grande de la línea actual
+  let espacioEntrePalabras = 20;
+
+  for (let palabra of palabras) {
+    textSize(palabra.tamano);
+    let ancho = textWidth(palabra.texto);
+
+    // Si no cabe en esta línea, saltamos a la siguiente
+    if (x + ancho > width - margen) {
+      x = margen;
+      y += alturaLinea;
+      alturaLinea = 0;
+    }
+
+    text(palabra.texto, x, y);
+
+    x += ancho + espacioEntrePalabras;
+    alturaLinea = max(alturaLinea, palabra.tamano * 1.2); // 1.2 = interlineado
+  }
 }
