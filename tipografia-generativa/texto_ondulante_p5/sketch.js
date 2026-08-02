@@ -8,7 +8,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   textFont("Helvetica");
   textStyle(BOLD);
-  textSize(48);
+  textSize(12);
   textAlign(CENTER, CENTER);
 
   mic = new p5.AudioIn();
@@ -34,7 +34,7 @@ function draw() {
   fill(255);
 
   if (micActivo) {
-    nivel = mic.getLevel(); // valor entre 0 (silencio) y ~1 (muy fuerte)
+    nivel = mic.getLevel();
   }
 
   let h = nf(hour(), 2);
@@ -42,11 +42,14 @@ function draw() {
   let s = nf(second(), 2);
   let texto = h + " : " + m + " : " + s;
 
+  // El interletrado base crece con el volumen, igual que la escala
+  let interletradoActual = interletrado + nivel * 150;
+
   let anchoTotal = 0;
   for (let i = 0; i < texto.length; i++) {
-    anchoTotal += textWidth(texto.charAt(i)) + interletrado;
+    anchoTotal += textWidth(texto.charAt(i)) + interletradoActual;
   }
-  anchoTotal -= interletrado;
+  anchoTotal -= interletradoActual;
 
   let x = width / 2 - anchoTotal / 2;
   let y = height / 2;
@@ -56,14 +59,15 @@ function draw() {
     let letraWidth = textWidth(letra);
     let letraX = x + letraWidth / 2;
 
-    // Cada letra reacciona al volumen, con una variación distinta por letra
     let desplazamiento = sin(frameCount * 0.2 + i) * nivel * 400;
+    let escala = 1 + nivel * 5;
 
     push();
     translate(letraX, y + desplazamiento);
+    scale(escala);
     text(letra, 0, 0);
     pop();
 
-    x += letraWidth + interletrado;
+    x += letraWidth + interletradoActual;
   }
 }
