@@ -3,7 +3,7 @@ String texto = "TIPO GENERATIVO";
 float tiempo = 0;
 
 void setup() {
-  size(800, 800);
+  size(1000, 800);
   fuente = createFont("Helvetica-Bold", 48);
   textFont(fuente);
   textAlign(CENTER, CENTER);
