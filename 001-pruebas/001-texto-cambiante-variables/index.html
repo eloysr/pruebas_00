@@ -12,6 +12,7 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
+      font-family: 'Noto Sans', 'Noto Sans Condensed', sans-serif;
     }
 
     .back-button {
@@ -20,19 +21,24 @@
       left: 1rem;
       z-index: 1000;
       display: inline-flex;
-      align-items: left;
+      align-items: center;
       justify-content: center;
+      height: 2.5rem;
       min-height: 2.5rem;
-      padding: 0.6rem 0.9rem;
-      background: rgba(0, 0, 0, 0.65);
+      width: 180px;
+      max-width: 180px;
+      min-width: 80px;
+      padding: 0 0.45rem;
+      background: rgba(0, 0, 0, 0.25);
       color: #fff;
       text-decoration: none;
-      font-family: Helvetica, sans-serif;
+      font-family: 'Noto Sans', 'Noto Sans Condensed', sans-serif;
       font-size: 0.9rem;
       line-height: 1;
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 0.35rem;
       backdrop-filter: blur(8px);
+      box-sizing: border-box;
     }
 
     .back-button:hover {
@@ -54,7 +60,7 @@
       white-space: nowrap;
       background: rgba(0, 0, 0, 0.65);
       color: #fff;
-      font-family: Arial, sans-serif;
+      font-family: 'Noto Sans', 'Noto Sans Condensed', sans-serif;
       font-size: 0.9rem;
       line-height: 1;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -135,6 +141,10 @@
       z-index: 1000;
     }
 
+    .size-palette {
+      grid-template-columns: 1fr;
+    }
+
     .color-swatch,
     .option-item {
       border-radius: 0.35rem;
@@ -157,6 +167,29 @@
       background: rgba(255, 255, 255, 0.08);
       font-size: 0.95rem;
       color: #fff;
+    }
+
+    .option-palette input[type="range"] {
+      width: 100%;
+      margin: 0.2rem 0 0.4rem;
+      accent-color: #ffffff;
+    }
+
+    .option-palette input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      border: 1px solid rgba(0, 0, 0, 0.35);
+    }
+
+    .option-palette input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
     }
 
     .option-item.selected {
@@ -183,6 +216,16 @@
     .color-swatch.selected {
       border-color: rgba(255, 255, 255, 0.95);
       box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+    }
+
+    .control-separator {
+      width: 100%;
+      max-width: 180px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.95);
+      margin-top: 10px;
+      margin-bottom: 20px;
+      align-self: flex-start;
     }
   </style>
 </head>
