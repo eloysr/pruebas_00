@@ -19,9 +19,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 2.5rem;
-      padding: 0.6rem 0.9rem;
-      background: rgba(255, 255, 255, 0.1);
+      height: 2.5rem;
+      white-space: nowrap;
+      padding: 0 0.9rem;
+      background: rgba(74, 58, 58, 0.2);
       color: #fff;
       text-decoration: none;
       font-family: Arial, sans-serif;
@@ -30,15 +31,27 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 0.35rem;
       backdrop-filter: blur(8px);
+      box-sizing: border-box;
     }
 
     .back-button:hover {
       background: rgba(255, 255, 255, 0.2);
     }
+
+    /* botón específico para acciones destructivas / secundarias */
+    .back-button.limpiar-button {
+      background: rgba(0, 0, 0, 0.8);
+      border-color: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .back-button.limpiar-button:hover {
+      background: rgba(0, 0, 0, 0.95);
+    }
   </style>
 </head>
 <body>
-  <a class="back-button" href="https://eloysr.github.io/thesis-lab/index.html">← Volver</a>
+  <a class="back-button limpiar-button" href="https://eloysr.github.io/thesis-lab/index.html">← Volver</a>
   <script src="sketch.js"></script>
 </body>
 </html>

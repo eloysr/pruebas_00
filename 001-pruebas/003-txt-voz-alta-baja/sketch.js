@@ -7,8 +7,8 @@ let reconocimiento;
 let botonEscuchar, botonParar, botonLimpiar;
 let nivelPico = 0;
 
-let volumenMaximo = 0.10;
-let tamanoMinimo = 15;
+let volumenMaximo = 0.30;
+let tamanoMinimo = 8;
 let tamanoMaximo = 500;
 
 let margen = 40;

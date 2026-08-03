@@ -7,8 +7,8 @@ let reconocimiento;
 let botonEscuchar, botonParar, botonLimpiar;
 let nivelPico = 0;
 
-let volumenMaximo = 0.10;
-let tamanoMinimo = 15;
+let volumenMaximo = 0.30;
+let tamanoMinimo = 8;
 let tamanoMaximo = 500;
 
 let margen = 40;
@@ -26,17 +26,22 @@ function setup() {
   mic = new p5.AudioIn();
 
   botonEscuchar = createButton("Escuchar");
+  botonEscuchar.addClass("back-button");
   botonEscuchar.mousePressed(empezarAEscuchar);
   fijarEnPantalla(botonEscuchar, 20);
 
   botonParar = createButton("Dejar de escuchar");
+  botonParar.addClass("back-button");
   botonParar.mousePressed(pararDeEscuchar);
   fijarEnPantalla(botonParar, 120);
   botonParar.hide();
 
   botonLimpiar = createButton("Limpiar");
+  botonLimpiar.addClass("back-button");
+  // clase adicional para diferenciar visualmente la acción
+  botonLimpiar.addClass("limpiar-button");
   botonLimpiar.mousePressed(limpiar);
-  fijarEnPantalla(botonLimpiar, 260);
+  fijarEnPantalla(botonLimpiar, 420);
 
   let etiqueta = createDiv(VERSION + " · " + new Date().toLocaleTimeString());
   etiqueta.style("position", "fixed");
