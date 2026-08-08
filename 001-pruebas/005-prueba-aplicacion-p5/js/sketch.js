@@ -30,7 +30,7 @@ function setup() {
   tituloBotonera.addClass('titulo-botonera');
   tituloBotonera.parent(grupoTitulo);
 
-  let textoIntro = createP('Ejercicio de prueba de interfaz de usuario para modificar las características de un texto mostrado a la derecha');
+  let textoIntro = createP('Prueba 05. Interfaz de usuario para modificar las características de un texto mostrado a la derecha');
   textoIntro.addClass('texto-intro');
   textoIntro.parent(grupoTitulo);
 
@@ -58,23 +58,23 @@ function setup() {
     document.documentElement.style.setProperty('--tamano-palabra', tamano + 'px');
   });
 
-  let grupoColor = createDiv().addClass('grupo-color');
-  grupoColor.parent(zonaBotones);
-
   let filaColor = createDiv().addClass('fila-etiqueta');
-  filaColor.parent(grupoColor);
+  filaColor.parent(zonaBotones);
+
+  let grupoEtiquetaColor = createDiv().addClass('grupo-etiqueta-color');
+  grupoEtiquetaColor.parent(filaColor);
 
   let etiquetaColor = createP('Text color');
   etiquetaColor.addClass('etiqueta-control');
-  etiquetaColor.parent(filaColor);
+  etiquetaColor.parent(grupoEtiquetaColor);
+
+  let selectorColor = createColorPicker('#ffffff');
+  selectorColor.addClass('selector-color');
+  selectorColor.parent(grupoEtiquetaColor);
 
   let valorColor = createP('#ffffff');
   valorColor.addClass('etiqueta-control');
   valorColor.parent(filaColor);
-
-  let selectorColor = createColorPicker('#ffffff');
-  selectorColor.addClass('selector-color');
-  selectorColor.parent(grupoColor);
 
   selectorColor.input(() => {
     let color = selectorColor.value();
@@ -233,7 +233,32 @@ function setup() {
   contenedorPalabras.parent('sketch-holder');
 
   palabras.forEach(palabra => {
-    createP(palabra).addClass('palabra').parent(contenedorPalabras);
+    let elementoPalabra = createP('').addClass('palabra').parent(contenedorPalabras);
+    let letras = [];
+
+    for (let letra of palabra) {
+      let caracter = (letra === ' ') ? String.fromCharCode(160) : letra;
+      let spanLetra = createSpan(caracter);
+      spanLetra.addClass('letra');
+      spanLetra.parent(elementoPalabra);
+      letras.push(spanLetra);
+    }
+
+    elementoPalabra.mouseOver(() => {
+      if (!distort2Activo) return;
+      letras.forEach(letraSpan => {
+        let despX = (Math.random() * 40) - 20;
+        let despY = (Math.random() * 40) - 20;
+        let giro = (Math.random() * 60) - 30;
+        letraSpan.style('transform', `translate(${despX}px, ${despY}px) rotate(${giro}deg)`);
+      });
+    });
+
+    elementoPalabra.mouseOut(() => {
+      letras.forEach(letraSpan => {
+        letraSpan.style('transform', 'none');
+      });
+    });
   });
 
   let titulo = createP('').addClass('titulo');
@@ -250,7 +275,7 @@ function setup() {
   botonReset.addClass('boton-reset');
   botonReset.parent(filaAcciones);
 
-  let botonDistort = createButton('Distort');
+  let botonDistort = createButton('Distort 01');
   botonDistort.addClass('boton');
   botonDistort.addClass('boton-reset');
   botonDistort.parent(filaAcciones);
@@ -264,6 +289,23 @@ function setup() {
     } else {
       contenedorPalabras.removeClass('distort-activo');
       botonDistort.removeClass('activo');
+    }
+  });
+
+  let botonDistort2 = createButton('Distort 02');
+  botonDistort2.addClass('boton');
+  botonDistort2.addClass('boton-reset');
+  botonDistort2.parent(filaAcciones);
+
+  let distort2Activo = false;
+  botonDistort2.mousePressed(() => {
+    distort2Activo = !distort2Activo;
+    if (distort2Activo) {
+      contenedorPalabras.addClass('distort2-activo');
+      botonDistort2.addClass('activo');
+    } else {
+      contenedorPalabras.removeClass('distort2-activo');
+      botonDistort2.removeClass('activo');
     }
   });
 
@@ -293,10 +335,14 @@ function setup() {
     selectorAlineacion.selected('Left');
     selectorTransformacion.selected('none');
 
-    // Desactiva también el modo Distort
+    // Desactiva también los modos Distort
     distortActivo = false;
     contenedorPalabras.removeClass('distort-activo');
     botonDistort.removeClass('activo');
+
+    distort2Activo = false;
+    contenedorPalabras.removeClass('distort2-activo');
+    botonDistort2.removeClass('activo');
   });
 
   let separadorVolver = createDiv().addClass('separador-zona');
@@ -308,16 +354,17 @@ function setup() {
   let botonVolver = createA('https://eloysr.github.io/thesis-lab/index.html', 'Back to homepage');
   botonVolver.addClass('boton');
   botonVolver.addClass('boton-reset');
+  botonVolver.addClass('boton-volver');
   botonVolver.parent(filaVolver);
 
   let pieVersion = createP('').addClass('pie-version');
-  pieVersion.parent('sketch-holder');
+  pieVersion.parent(zonaBotones);
 
   function actualizarPie() {
     const ahora = new Date();
     const fecha = ahora.toLocaleDateString();
     const hora = ahora.toLocaleTimeString();
-    pieVersion.html(`v1.0 — ${fecha} ${hora}`);
+    pieVersion.html(`eloy segura @ altura x - v1.0 — ${fecha} ${hora}`);
   }
   actualizarPie();
   setInterval(actualizarPie, 1000);
