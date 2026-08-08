@@ -24,9 +24,11 @@ html, body {
   border: 1px solid var(--color-boton);
   border-radius: 8px;
   padding: 10px 20px;
+  font-family: Helvetica, Arial, sans-serif;
   font-size: 16px;
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
